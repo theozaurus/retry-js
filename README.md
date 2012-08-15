@@ -14,7 +14,9 @@ scope with something like:
 
     var Retry = com.jivatechnology.Retry;
 
-We can not start configuring it from the constructor:
+## Configuring
+
+We can configure what we need from the constructor:
 
     var retry = new Retry({
       timeout:   3000,                     // specified in ms, how long to wait for a success
@@ -28,9 +30,6 @@ We can not start configuring it from the constructor:
       onFailure: function(){ console.warn("Nay") },
     })
 
-To start attempting the function we can then do:
-
-    retry.run();
 
 It's possible to customise it once the object has been instantiated:
 
@@ -40,10 +39,11 @@ It's possible to customise it once the object has been instantiated:
     retry.timeout(500);
     => 500
 
-We can add arbitary callbacks for success or failure as well (see [callback-js](http://github.com/theozaurus/callback-js)):
+## Executing
 
-    retry.onSuccess.add(function(){ console.info("Me too")});
-    retry.onSuccess.add(function(){ console.info("and me!")});
+To start attempting the function we need to execute `run`:
+
+    retry.run();
 
 The function to retry will be checked to make sure it doesn't
 
@@ -72,18 +72,30 @@ For example:
 This is useful for situations where you have non blocking code that uses
 callback when a result is returned (e.g. a jQuery AJAX request).
 
-The fallback logic is totally customisable, and has `this` set to the retry
-object. For example if we wanted a fallback mechanism that increases the
-wait by interval for each attempt we could write:
+## Callbacks
+
+We can add as many callbacks as we need for success or failure as well (see [callback-js](http://github.com/theozaurus/callback-js)):
+
+    retry.onSuccess.add(function(){ console.info("Me too")});
+    retry.onSuccess.add(function(){ console.info("and me!")});
+
+## Fallback
+
+The fallback specifies how the interval changes over time. Often it's useful to
+get behaviour whereby we intially retry quickly, then ease off. We can use the
+fallback function to describe this logic.
+
+For example if we wanted a fallback mechanism that increases the
+wait by `interval` for each attempt we could write:
 
     var retry = new Retry();
     retry.fallback(function(){
       return this.attempt() * this.interval();
     });
 
-There are some standard fallback functions to get you started.
+There are also some standard fallback functions to get started with.
 
-    - `Retry.Fallbacks.Constant`, will always return the interval.
+    - `Retry.Fallbacks.Constant`, will always return the same interval.
     - `Retry.Fallbacks.Fibonacci`, will increase the interval in a similar way to a fibonacci sequence
 
 Tests
