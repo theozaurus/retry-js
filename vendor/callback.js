@@ -44,13 +44,21 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
   this.CallbackList = (function(){
 
     // Private class level objects
-
+    var merge_options = function(obj1,obj2){
+      obj1 = obj1 || {};
+      obj2 = obj2 || {};
+      var obj3 = {};
+      for (var attr1 in obj1) {
+        if( obj1.hasOwnProperty(attr1) ){ obj3[attr1] = obj1[attr1]; }
+      }
+      for (var attr2 in obj2) {
+        if( obj2.hasOwnProperty(attr2) ){ obj3[attr2] = obj2[attr2]; }
+      }
+      return obj3;
+    };
 
     // Return the constructor
     return function(){
-
-      // Private variables
-      var list;
 
       // Private functions
       make_array = function(callbacks){
@@ -64,12 +72,12 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
         if(c instanceof scope.Callback){
           return c;
         }else{
-          return new scope.Callback({func: c});
+          return new scope.Callback({func: c, must_keep: that.must_keep()});
         }
       };
 
       marshal_array = function(callbacks){
-        results = []
+        results = [];
         for(var c in callbacks){
           if(callbacks.hasOwnProperty(c)){
             var marshalled = marshal(callbacks[c]);
@@ -80,7 +88,36 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
         return results;
       };
 
+
+      // Private variables
+      var defaults = {
+        must_keep: false
+      };
+      var opts;
+      if(arguments.length > 0){
+        var possibility = arguments[arguments.length - 1];
+        if(possibility.constructor === Object){
+          // Bare object, must be our options
+          opts = possibility;
+        }
+      } else {
+        opts = {};
+      }
+      var options = merge_options(defaults,opts);
+
+      var list;
+
+      var that = this;
+
       // Privileged functions
+      this.must_keep = function(){
+        if(arguments.length > 0){
+          return options["must_keep"] = arguments[0];
+        } else {
+          return options["must_keep"];
+        }
+      };
+
       this.size = function(){
         return list.length;
       };
@@ -118,7 +155,9 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
       this.clear();
 
       // Add callbacks if any specified on creation
-      if(arguments.length >= 1){ this.add(arguments[0]); }
+      if(arguments.length > 0 && arguments[0].constructor != Object ){
+        this.add(arguments[0]);
+      }
     };
 
   })();

@@ -271,30 +271,6 @@ describe("Retry", function() {
           });
         });
 
-        it("should not run 'onFailure' callbacks after subsequent calls to 'failure'", function(){
-          var failed = false;
-          var success = false;
-          var max_tries = 3;
-
-          runs(function(){
-            subject.func(function(){ subject.success(); });
-            subject.onSuccess.add(function(){ success = true; });
-            subject.onFailure.add(function(){ failed = true; });
-            subject.max_tries(1);
-            subject.run();
-          });
-
-          waitsFor(function(){
-            return success;
-          });
-
-          runs(function(){
-            subject.failure();
-
-            expect( failed ).toEqual( false );
-          });
-        });
-
       });
 
       var testing_failure = function(function_that_fails){
@@ -562,6 +538,54 @@ describe("Retry", function() {
           runs(function(){
             expect(subject.attempt()).toEqual(2);
           });
+        });
+
+      });
+
+      describe("when 'func' is successfull, but then fails later", function(){
+
+        it("should rerun 'func' after the failure until it succeeds", function(){
+
+          var success = 0;
+          var failures = 0;
+          var calls = 0;
+
+
+          runs(function(){
+            subject.func(function(){
+              calls++;
+              subject.success();
+            });
+
+            subject.onSuccess.add(function(){
+              if( success === 0 ){
+                setTimeout(function(){
+                  subject.failure();
+                }, 1000);
+              }
+              success++;
+            });
+
+            subject.onFailure.add(function(){
+              failures++;
+            });
+
+            subject.run();
+          });
+
+          waitsFor(function(){
+            return success >= 2;
+          });
+
+          runs(function(){
+            // Function run twice, first time it works,
+            // then later a failure occurs, causing func to be run for a
+            // second time, but not the onFailure callbacks
+            expect(calls).toEqual(2);
+            expect(failures).toEqual(0);
+            expect(success).toEqual(2);
+          });
+
         });
 
       });

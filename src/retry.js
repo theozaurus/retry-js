@@ -73,6 +73,10 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
           that.failure(err);
         }
       };
+      var reset_attempt = function(){
+        attempt = 0;
+      };
+      reset_attempt();
 
       // Monitor function has not timed out
 
@@ -128,9 +132,30 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
       var is_ready = function(){
         return state == "ready";
       };
+      var is_completed = function(){
+        return state == "completed";
+      };
+      var is_failed = function(){
+        return state == "ready";
+      };
+
+      var reset = function(){
+        if(is_completed()){
+          state = "ready";
+          reset_attempt();
+        }
+      };
 
       var complete = function(){
-        state = "completed";
+        if(is_ready()){
+          state = "completed";
+        }
+      };
+
+      var fail = function(){
+        if(is_ready()){
+          state = "failed";
+        }
       };
 
       // Privileged methods
@@ -138,13 +163,15 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
       this.failure = function(err,retry){
         if(typeof retry == "undefined"){ retry = true; }
 
+        if(is_completed()){ reset(); }
+
         if(is_ready()){
           if(retry && can_retry()){
             clear_timeout();
             schedule_retry();
           } else {
             that.onFailure.handle();
-            complete();
+            fail();
           }
         }
       };
@@ -171,8 +198,8 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
       this.timeout   = create_getter_setter(options,"timeout");
       this.fallback  = create_getter_setter(options,"fallback");
       this.func      = create_getter_setter(options,"func");
-      this.onSuccess = new CallbackList(options.onSuccess || []);
-      this.onFailure = new CallbackList(options.onFailure || []);
+      this.onSuccess = new CallbackList(options.onSuccess || [], {must_keep: true});
+      this.onFailure = new CallbackList(options.onFailure || [], {must_keep: true});
       this.attempt   = function(){ return attempt; };
 
     };
