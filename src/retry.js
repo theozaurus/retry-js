@@ -79,7 +79,7 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
       var timeout;
       var create_timeout = function(){
         if(!timeout){
-          setTimeout(
+          timeout = setTimeout(
             function(){ that.failure("timeout"); },
             that.timeout()
           );
@@ -88,6 +88,7 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
 
       var clear_timeout = function(){
         clearTimeout(timeout);
+        timeout = null;
       };
 
       // Retry logic
