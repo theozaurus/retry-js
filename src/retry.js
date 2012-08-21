@@ -73,10 +73,10 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
           that.failure(err);
         }
       };
-      var reset_attempt = function(){
+      var clear_attempt = function(){
         attempt = 0;
       };
-      reset_attempt();
+      clear_attempt();
 
       // Monitor function has not timed out
 
@@ -110,6 +110,10 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
           }, wait());
         }
       };
+      var clear_retry = function(){
+        clearTimeout(retry);
+        retry = null;
+      };
 
       // Calculate earliest to retry
 
@@ -138,22 +142,44 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
       var is_failed = function(){
         return state == "ready";
       };
+      var is_running = function(){
+        return state == "running";
+      };
+
+      var run = function(){
+        if(is_ready()){
+          state = "running";
+          if(can_retry()){
+            execute();
+          } else {
+            failure();
+          }
+        }
+      };
+
+      var stop = function(){
+        state = "ready";
+
+        clear_retry();
+        // clear_timeout();
+        clear_attempt();
+      };
 
       var reset = function(){
         if(is_completed()){
-          state = "ready";
-          reset_attempt();
+          state = "running";
+          clear_attempt();
         }
       };
 
       var complete = function(){
-        if(is_ready()){
+        if(is_running()){
           state = "completed";
         }
       };
 
       var fail = function(){
-        if(is_ready()){
+        if(is_running()){
           state = "failed";
         }
       };
@@ -165,7 +191,7 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
 
         if(is_completed()){ reset(); }
 
-        if(is_ready()){
+        if(is_running()){
           if(retry && can_retry()){
             clear_timeout();
             schedule_retry();
@@ -177,7 +203,7 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
       };
 
       this.success = function(){
-        if(is_ready()){
+        if(is_running()){
           clear_timeout();
           that.onSuccess.handle();
           complete();
@@ -186,11 +212,11 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
 
       this.run = function(){
         check_options(options);
-        if(can_retry()){
-          execute();
-        } else {
-          failure();
-        }
+        run();
+      };
+
+      this.stop = function(){
+        return stop();
       };
 
       this.max_tries = create_getter_setter(options,"max_tries");

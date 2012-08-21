@@ -98,6 +98,21 @@ There are also some standard fallback functions to get started with.
     - `Retry.Fallbacks.Constant`, will always return the same interval.
     - `Retry.Fallbacks.Fibonacci`, will increase the interval in a similar way to a fibonacci sequence
 
+## Stopping
+
+Once you have finished using the retry object you can `stop` it. This will
+prevent any callbacks being called, ignore any requests to `failure` or
+`success`. You can then reenable it by calling `run`.
+
+    var retry = new Retry();
+    retry.func(function(){ ... })
+    retry.run();
+
+    ... Do work ...
+
+    retry.stop();
+
+
 Tests
 =====
 

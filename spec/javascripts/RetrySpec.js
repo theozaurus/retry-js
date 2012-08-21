@@ -655,6 +655,135 @@ describe("Retry", function() {
 
     });
 
+    describe("'stop'", function(){
+
+      it("should not trigger any calls to onSuccess if success is called", function(){
+
+        var called_success = false;
+        var on_success_called = false;
+
+        subject.func(function(){
+          setTimeout(function(){
+            subject.success();
+            called_success = true;
+          }, 500);
+        });
+
+        subject.onSuccess.add(function(){
+          on_success_called = true;
+        });
+
+        runs(function(){
+          subject.run();
+          subject.stop();
+        });
+
+        waitsFor(function(){
+          return called_success;
+        });
+
+        runs(function(){
+          expect(on_success_called).toEqual(false);
+        });
+
+      });
+
+      it("should not trigger any calls to onfailure if failure is called", function(){
+
+        var called_failure = false;
+        var on_failure_called = false;
+
+        subject.func(function(){
+          setTimeout(function(){
+            subject.failure();
+            called_failure = true;
+          }, 500);
+        });
+
+        subject.onFailure.add(function(){
+          on_failure_called = true;
+        });
+
+        runs(function(){
+          subject.run();
+          subject.stop();
+        });
+
+        waitsFor(function(){
+          return called_failure;
+        });
+
+        runs(function(){
+          expect(on_failure_called).toEqual(false);
+        });
+
+      });
+
+      it("should make sure the the timeout does not trigger onFailure", function(){
+        var timed_out = false;
+
+        subject.onFailure.add(function(){
+          timed_out = true;
+        });
+        subject.timeout(500);
+        subject.max_tries(1);
+        subject.func(function(){ /* Timesout */ });
+
+        runs(function(){
+          subject.run();
+          subject.stop();
+        });
+
+        waits(700);
+
+        runs(function(){
+          expect(timed_out).toEqual(false);
+        });
+      });
+
+      it("should clear any retries", function(){
+        var tries = 0;
+
+        subject.interval(100);
+        subject.max_tries(2);
+        subject.func(function(){ tries++; subject.failure(); });
+
+        runs(function(){
+          subject.run();
+          subject.stop();
+        });
+
+        waits(700);
+
+        runs(function(){
+          expect(tries).toEqual(1);
+        });
+      });
+
+      it("should reset the attempt counter", function(){
+
+        subject.max_tries(5);
+        subject.interval(1000);
+        subject.func(function(){ subject.failure(); });
+
+        runs(function(){
+          subject.run();
+        });
+
+        waitsFor(function(){
+          return subject.attempt() == 3;
+        });
+
+        runs(function(){
+          subject.stop();
+
+          expect(subject.attempt()).toEqual(0);
+        });
+
+      });
+
+    });
+
   });
 
 
