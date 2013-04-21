@@ -61,14 +61,14 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
     return function(){
 
       // Private functions
-      make_array = function(callbacks){
+      function make_array(callbacks){
         if(!(callbacks instanceof Array)){
           callbacks = [callbacks];
         }
         return callbacks;
       };
 
-      marshal = function(c){
+      function marshal(c){
         if(c instanceof scope.Callback){
           return c;
         }else{
@@ -76,8 +76,8 @@ if (!com.jivatechnology) { com.jivatechnology = {}; }
         }
       };
 
-      marshal_array = function(callbacks){
-        results = [];
+      function marshal_array(callbacks){
+        var results = [];
         for(var c in callbacks){
           if(callbacks.hasOwnProperty(c)){
             var marshalled = marshal(callbacks[c]);
