@@ -116,7 +116,7 @@ prevent any callbacks being called, ignore any requests to `failure` or
 Tests
 =====
 
-All of the tests are written in [Jasmine](http://pivotal.github.com/jasmine/).
+All of the tests are written in [Jasmine](https://jasmine.github.io/).
 [Sprockets](https://github.com/sstephenson/sprockets) is used to describe
 dependencies between the files. To run the tests, you will first need to
 install [Ruby](http://ruby-lang.org) and [Bundler](http://gembundler.com/).
